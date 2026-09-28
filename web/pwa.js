@@ -1,0 +1,7 @@
+(()=>{'use strict';const state=document.getElementById('offline-state'),button=document.getElementById('cache-charts'),status=document.getElementById('cache-status');
+const native=location.protocol==='file:'||location.hostname==='aw139.local';
+if(native){state.textContent='Installed app: calculator and all source pages are available offline.';button.hidden=true;return;}
+if(!('serviceWorker'in navigator)){state.textContent='Offline installation is unavailable in this browser.';button.hidden=true;return;}
+navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{state.textContent='Calculator ready for offline use. Source pages are saved as you view them.';}).catch(()=>{state.textContent='Offline setup failed. Reopen while connected and try again.';});
+button.onclick=async()=>{button.disabled=true;let completed=0;try{await navigator.serviceWorker.ready;const cache=await caches.open('aw139-charts-v1');for(const page of AW139_SOURCES){const url='./charts/p'+page.page+'.webp';if(!await cache.match(url)){const r=await fetch(url);if(!r.ok)throw Error('page');await cache.put(url,r);}status.textContent=`Saved ${++completed} of ${AW139_SOURCES.length} source pages.`;}status.textContent='All source pages saved for offline use.';}catch{status.textContent=`Saved ${completed} pages. Connection or storage interrupted; tap again to continue.`;}finally{button.disabled=false;}};
+})();
